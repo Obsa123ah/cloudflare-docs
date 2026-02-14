@@ -25,11 +25,16 @@ Code Mode relies on the [Dynamic Worker Loader API](/workers/runtime-apis/bindin
 
 ## Why Code Mode?
 
+Traditional MCP tool calling sends every tool schema — name, description, and full parameter definitions — as part of the LLM prompt on every request. When an MCP server exposes tens or hundreds of tools, those schemas consume a large share of the context window and drive up token usage. Each tool invocation also requires a full round-trip through the model, so multi-step workflows multiply that cost further.
+
+Code Mode drastically reduces token consumption by replacing all of those individual tool schemas with a compact TypeScript API definition. Instead of repeating verbose JSON schemas on every request, the LLM receives a single typed interface and writes code against it. The result is fewer input tokens per request and fewer round-trips overall.
+
 LLMs have extensive training data covering real-world TypeScript code, but far less exposure to tool-calling conventions. When tools are presented as a TypeScript API instead of tool schemas, LLMs can:
 
+- **Use far fewer tokens** — a compact TypeScript interface replaces the full JSON schema for every tool, significantly shrinking prompt size. MCP servers can expose hundreds or thousands of tools without blowing up the context window
 - **Handle more tools with higher accuracy** — a familiar TypeScript interface is easier for the model to reason about than abstract tool schemas
-- **Chain multiple calls in a single execution** — instead of round-tripping through the neural network between each tool call, the LLM writes code that calls multiple tools in sequence, saving time, tokens, and energy
-- **Return only final results** — intermediate values stay within the sandbox, and only the data the LLM needs is passed back
+- **Chain multiple calls in a single execution** — instead of round-tripping through the model between each tool call, the LLM writes a single script that calls multiple tools in sequence, eliminating per-step token overhead
+- **Return only final results** — intermediate values stay within the sandbox, and only the data the LLM needs is passed back, keeping response tokens minimal
 
 ## How it works
 
